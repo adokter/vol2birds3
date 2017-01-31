@@ -8,6 +8,7 @@ Aws.config.update({
 
 data_file = ENV['DATAFILE']
 output_bucket = ENV['DEST_BUCKET']
+output_file = File.basename(data_file)
 s3 = Aws::S3::Client.new
 
 if data_file.include?(".gz")
@@ -22,9 +23,9 @@ else
    key: data_file)
 end
 
-`vol2bird data`
+`vol2bird data output`
 
 # upload file from disk in a single request, may not exceed 5GB
 File.open('output', 'rb') do |file|
-  s3.put_object(bucket: output_bucket, key: "output-#{data_file}", body: file)
+  s3.put_object(bucket: output_bucket, key: "#{output_file}.h5", body: file)
 end
