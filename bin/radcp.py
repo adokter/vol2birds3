@@ -45,7 +45,6 @@ def main(argv):
          radar = arg
       elif opt in ("-s", "--step"):
          step = float(arg)
-   print date,str(date)
    # not working yet ... validate(date)
    if not(radar != ''):
       print 'radcp.py -r <radar> -d <date> [--night] [--step <mins>]'
