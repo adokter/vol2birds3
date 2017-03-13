@@ -17,15 +17,25 @@ def main(argv):
    radar=''
    date = ''
    night = False
+   step = 0
    utc=pytz.UTC
    try:
-      opts, args = getopt.getopt(argv,"hnr:d:",["night","radar=","date="])
+      opts, args = getopt.getopt(argv,"hnr:d:s:",["night","radar=","date=","step="])
    except getopt.GetoptError:
-      print 'radcp.py -r <radar> -d <date> [--night]'
+      print 'radcp.py -r <radar> -d <date> [--night] [--step <mins>]'
+      print 'radcp.py -h | --help'
       sys.exit(2)
    for opt, arg in opts:
       if opt == '-h':
-         print 'radcp.py -r <radar> -d <date> [--night]'
+         print 'Usage: '
+         print '  radcp.py -r <radar> -d <date> [--night] [--step <mins>]'
+         print '  radcp.py -h | --help'
+         print '\nOptions:'
+         print '  -h --help     Show this screen'
+         print '  -r --radar    Specify NEXRAD radar, e.g. KBGM'
+         print '  -d --date     Specify date in yyyymmdd format'
+         print '  -n --night    If set, only download nighttime data'
+         print '  -s --step     Minimum timestep in minutes between consecutive polar volumes [default: 0]'
          sys.exit()
       elif opt in ("-n", "--night"):
          night = True
@@ -33,14 +43,18 @@ def main(argv):
          date = arg
       elif opt in ("-r", "--radar"):
          radar = arg
+      elif opt in ("-s", "--step"):
+         step = float(arg)
    if not(date.isdigit() and radar != ''):
-      print 'radcp.py -r <radar> -d <date> [--night]'
+      print 'radcp.py -r <radar> -d <date> [--night] [--step <mins>]'
+      print 'radcp.py -h | --help'
       sys.exit()
 
    latitude=NEXRADlat[radar]
    longitude=NEXRADlon[radar]
 
    datetime_object = datetime.strptime(date, '%Y%m%d')
+   datetime_prev = utc.localize(datetime.strptime('19000101', '%Y%m%d'))
    print 'Radar:', radar, 'Date:', datetime_object.strftime('%Y-%m-%d')
    print 'Lat:', latitude,'Lon:', longitude
    print 'Night only:', night
@@ -69,6 +83,10 @@ def main(argv):
          else:
             if datetime_key < sun['sunset'] or datetime_key > sun['sunrise']:
                continue
+      if (datetime_key-datetime_prev).total_seconds()/60 < step:
+         continue
+
+      datetime_prev=datetime_key
 
       key.get_contents_to_filename(fname)
 
