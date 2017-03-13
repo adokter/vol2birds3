@@ -33,7 +33,7 @@ def main(argv):
          print '\nOptions:'
          print '  -h --help     Show this screen'
          print '  -r --radar    Specify NEXRAD radar, e.g. KBGM'
-         print '  -d --date     Specify date in yyyymmdd format'
+         print '  -d --date     Specify date in yyyy/mm/dd format'
          print '  -n --night    If set, only download nighttime data'
          print '  -s --step     Minimum timestep in minutes between consecutive polar volumes [default: 0]'
          sys.exit()
@@ -45,7 +45,9 @@ def main(argv):
          radar = arg
       elif opt in ("-s", "--step"):
          step = float(arg)
-   if not(date.isdigit() and radar != ''):
+   print date,str(date)
+   # not working yet ... validate(date)
+   if not(radar != ''):
       print 'radcp.py -r <radar> -d <date> [--night] [--step <mins>]'
       print 'radcp.py -h | --help'
       sys.exit()
@@ -53,9 +55,9 @@ def main(argv):
    latitude=NEXRADlat[radar]
    longitude=NEXRADlon[radar]
 
-   datetime_object = datetime.strptime(date, '%Y%m%d')
-   datetime_prev = utc.localize(datetime.strptime('19000101', '%Y%m%d'))
-   print 'Radar:', radar, 'Date:', datetime_object.strftime('%Y-%m-%d')
+   datetime_object = datetime.strptime(date, '%Y/%m/%d')
+   datetime_prev = utc.localize(datetime.strptime('1900/01/01', '%Y/%m/%d'))
+   print 'Radar:', radar, 'Date:', datetime_object.strftime('%Y/%m/%d')
    print 'Lat:', latitude,'Lon:', longitude
    print 'Night only:', night
 
@@ -89,6 +91,12 @@ def main(argv):
       datetime_prev=datetime_key
 
       key.get_contents_to_filename(fname)
+
+def validate(date_text):
+    try:
+        datetime.datetime.strptime(date_text, '%Y/%m/%d')
+    except ValueError:
+        raise ValueError("Incorrect data format, should be YYYY/MM/DD")
 
 if __name__ == "__main__":
    main(sys.argv[1:])
