@@ -11,6 +11,8 @@ from subprocess import call
 from shutil import copyfile
 
 def main(argv):
+   me = sys.argv[0] 
+
    if len(argv) == 0:
       # no input arguments, check whether an ARGS environment variable is set
       if not "ARGS" in os.environ:
@@ -19,11 +21,10 @@ def main(argv):
 
       # get the contents of the ARGS environment variable
       args = os.environ["ARGS"]
+      print "executing",me,args
       argslist=args.split()
    else:
       argslist = argv
-
-   me = sys.argv[0] 
 
    radar=''
    date = ''

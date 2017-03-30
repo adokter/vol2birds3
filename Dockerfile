@@ -2,13 +2,13 @@ FROM adokter/vol2bird
 
 RUN \
   apt-get update && apt-get install --no-install-recommends -y \
-    ruby && \
+  python python-pip && \
   rm -rf /var/lib/apt/lists/* && \
-  echo "gem: --no-ri --no-rdoc" > ~/.gemrc && \
-  gem install aws-sdk
+  pip install boto pytz astral
 
-COPY bin/process_file.rb /opt/process_file.rb
+COPY bin/radcp.py /opt/radcp.py
+COPY bin/process_day.py /opt/process_day.py
 
 WORKDIR /opt
 
-CMD ["./process_file.rb"]
+CMD ["./process_day.py"]
