@@ -9,6 +9,7 @@ import radcp
 import getopt
 from subprocess import call
 from shutil import copyfile
+from boto.s3.key import Key
 
 def main(argv):
    me = sys.argv[0] 
@@ -104,34 +105,27 @@ def main(argv):
          localfile = os.path.basename(pvol)
          # process the volume file with vol2bird, write to myfile
          call(["vol2bird",localfile],stdout=myfile)
-      # compress myfile and copy it to original working directory
       myfile.close()
-      with open(fout, "r") as myfile:
-         if zipQ:
-            with gzip.open(cwd + "/" + fout + ".gz", 'wb') as zipfile:
+      # compress myfile and copy it to original working directory
+      if zipQ:
+         with open(fout, "r") as myfile:
+            with gzip.open(fout + ".gz", 'wb') as zipfile:
                shutil.copyfileobj(myfile, zipfile)
                zipfile.close()
-         else:
-            with open(cwd + "/" + fout, 'wb') as nozipfile:
-               shutil.copyfileobj(myfile, nozipfile)
-               nozipfile.close()
-         myfile.close()
+               # include gz extension to the output file
+               fout=fout+".gz"
+            myfile.close()
+
+
+   # upload the output to s3
+   conn = boto.connect_s3()
+   bucket = conn.get_bucket('vol2bird')
+   k = Key(bucket)
+   k.key = radar+"/"+date+"/"+fout 
+   k.set_contents_from_filename(fout)
 
    # clean up 
    shutil.rmtree(tmppath)
-
-#data_file = os.environ["DATAFILE"]
-#output_bucket = os.environ["DEST_BUCKET"]
-#localfile = os.path.basename(data_file)
-#output_file=localfile+'.h5'
-
-#s3 = boto.connect_s3()
-
-#bucket = s3.get_bucket('noaa-nexrad-level2')
-#s3key = bucket.get_key(data_file)
-#s3key.get_contents_to_filename(localfile)
-
-#call(["vol2bird",localfile,output_file])
 
 if __name__ == "__main__":
    main(sys.argv[1:])
