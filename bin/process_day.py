@@ -34,14 +34,14 @@ def main(argv):
    zipQ = False
 
    try:
-      opts, args = getopt.getopt(argslist,"hngr:d:s:",["night","gzip","radar=","date=","step="])
+      opts, args = getopt.getopt(argslist,"hngr:d:s:",["help","night","gzip","radar=","date=","step="])
    except getopt.GetoptError:
       print "error: unrecognised arguments"
       print me+' -r <radar> -d <date> [--night] [--gzip] [--step <mins>]'
       print me+' -h | --help'
       sys.exit(2)
    for opt, arg in opts:
-      if opt == '-h':
+      if opt in ('-h', "--help"):
          print 'Usage: '
          print '  '+me+' -r <radar> -d <date> [--night] [--gzip] [--step <mins>]'
          print '  '+me+' -h | --help'
