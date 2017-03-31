@@ -96,6 +96,14 @@ def main(argv):
    # get the file list of polar volumes to be processed
    pvols = sorted(os.listdir(tmppath))
 
+   # write an option file if OPTS environment variable is set
+   # should contain option.conf statements separated by \n
+   if "OPTS" in os.environ:
+      optsfile = open("options.conf", "w")
+      opts = os.environ["OPTS"].replace('\\n', '\n')
+      optsfile.write(opts)
+      optsfile.close()
+
    # construct output filename from input argument string
    fout=radar+date+".txt"
    fout=fout.replace('/','')
