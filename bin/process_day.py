@@ -17,7 +17,7 @@ def main(argv):
    if len(argv) == 0:
       # no input arguments, check whether an ARGS environment variable is set
       if not "ARGS" in os.environ:
-         print >> sys.stderr, "environment variable 'ARGS' not found, aborting"
+         print >> sys.stderr, "No input arguments and environment variable 'ARGS' not found, aborting"
          sys.exit()
 
       # get the contents of the ARGS environment variable
@@ -32,18 +32,20 @@ def main(argv):
    night = False
    step = 0
    zipQ = False
+   aws = False
+   docker = False
 
    try:
-      opts, args = getopt.getopt(argslist,"hngr:d:s:",["help","night","gzip","radar=","date=","step="])
+      opts, args = getopt.getopt(argslist,"hangr:d:s:",["help","aws","night","gzip","radar=","date=","step="])
    except getopt.GetoptError:
       print "error: unrecognised arguments"
-      print me+' -r <radar> -d <date> [--night] [--gzip] [--step <mins>]'
+      print me+' -r <radar> -d <date> [--night] [--gzip] [--step <mins>] [--aws]'
       print me+' -h | --help'
       sys.exit(2)
    for opt, arg in opts:
       if opt in ('-h', "--help"):
          print 'Usage: '
-         print '  '+me+' -r <radar> -d <date> [--night] [--gzip] [--step <mins>]'
+         print '  '+me+' -r <radar> -d <date> [--night] [--gzip] [--step <mins>] [--aws]'
          print '  '+me+' -h | --help'
          print '\nOptions:'
          print '  -h --help     Show this screen'
@@ -52,9 +54,12 @@ def main(argv):
          print '  -d --date     Specify date in yyyy/mm/dd format'
          print '  -n --night    If set, only download nighttime data'
          print '  -s --step     Minimum timestep in minutes between consecutive polar volumes [default: 0]'
+         print '  -a --aws      Store output in vol2bird bucket on aws'
          sys.exit()
       elif opt in ("-n", "--night"):
          night = True
+      elif opt in ("-a", "--aws"):
+         aws = True
       elif opt in ("-g", "--gzip"):
          zipQ = True
       elif opt in ("-d", "--date"):
@@ -65,9 +70,16 @@ def main(argv):
          step = float(arg)
    if not(radar != '' and date != ''):
       print "error: both a radar and date specification required"
-      print me+' -r <radar> -d <date> [--night] [--gzip] [--step <mins>]'
+      print me+' -r <radar> -d <date> [--night] [--gzip] [--step <mins>] [--aws]'
       print me+' -h | --help'
       sys.exit()
+
+   # check whether we are inside a Docker container
+   fcgroup="/proc/1/cgroup"
+   if os.path.exists(fcgroup):
+      with open(fcgroup, "r") as cgroupfile:
+         if "docker" in cgroupfile.read():
+             docker=True
 
    # store the current working directory
    cwd = os.getcwd()
@@ -82,8 +94,12 @@ def main(argv):
    argscp=argslist
    if '--gzip' in argscp:
       argscp.remove('--gzip')
-   elif '--g' in argscp:
-      argscp.remove('--g')
+   if '-g' in argscp:
+      argscp.remove('-a')
+   if '--aws' in argscp:
+      argscp.remove('--aws')
+   if '-a' in argscp:
+      argscp.remove('-a')
    radcp.main(argscp)
 
    # count the number of files
@@ -126,11 +142,17 @@ def main(argv):
 
 
    # upload the output to s3
-   conn = boto.connect_s3()
-   bucket = conn.get_bucket('vol2bird')
-   k = Key(bucket)
-   k.key = radar+"/"+date+"/"+fout 
-   k.set_contents_from_filename(fout)
+   if aws:
+      conn = boto.connect_s3()
+      bucket = conn.get_bucket('vol2bird')
+      k = Key(bucket)
+      k.key = radar+"/"+date+"/"+fout 
+      k.set_contents_from_filename(fout)
+   else:
+      if docker:
+         copyfile(fout,'/data/'+fout)
+      else:
+         copyfile(fout,cwd+'/'+fout)
 
    # clean up 
    shutil.rmtree(tmppath)
