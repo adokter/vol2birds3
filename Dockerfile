@@ -8,6 +8,7 @@ RUN \
 
 COPY bin/radcp.py /opt/radcp.py
 COPY bin/process_day.py /opt/process_day.py
+COPY occult /opt/occult
 
 WORKDIR /opt
 

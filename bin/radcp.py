@@ -6,6 +6,7 @@ from datetime import datetime
 import boto
 import os
 from subprocess import call
+from datetime import timedelta
 
 NEXRADlat={'KABR': 45.4558333333333, 'KABX': 35.1497222222222, 'KAKQ': 36.9838888888889, 'KAMA': 35.2333333333333, 'KAMX': 25.6111111111111, 'KAPX': 44.9072222222222, 'KARX': 43.8227777777778, 'KATX': 48.1944444444444, 'KBBX': 39.4961111111111, 'KBGM': 42.1997222222222, 'KBHX': 40.4983333333333, 'KBIS': 46.7708333333333, 'KBLX': 45.8538888888889, 'KBMX': 33.1722222222222, 'KBOX': 41.9558333333333, 'KBRO': 25.9161111111111, 'KBUF': 42.9488888888889, 'KBYX': 24.5975, 'KCAE': 33.9486111111111, 'KCBW': 46.0394444444444, 'KCBX': 43.4908333333333, 'KCCX': 40.9230555555555, 'KCLE': 41.4130555555555, 'KCLX': 32.6555555555556, 'KCRP': 27.7841666666667, 'KCYS': 41.1519444444444, 'KDAX': 38.5011111111111, 'KDDC': 37.7608333333333, 'KDFX': 29.2727777777778, 'KDGX': 32.28, 'KDIX': 39.9469444444444, 'KDLH': 46.8369444444444, 'KDMX': 41.7313888888889, 'KDOX': 38.8255555555556, 'KDTX': 42.6997222222222, 'KDVN': 41.6116666666667, 'KDYX': 32.5383333333333, 'KEAX': 38.8102777777778, 'KEMX': 31.8936111111111, 'KENX': 42.5863888888889, 'KEOX': 31.4605555555556, 'KEPZ': 31.8730555555556, 'KESX': 35.7011111111111, 'KEVX': 30.5644444444444, 'KEWX': 29.7038888888889, 'KEYX': 35.0977777777778, 'KFCX': 37.0244444444444, 'KFDR': 34.3622222222222, 'KFDX': 34.6352777777778, 'KFFC': 33.3636111111111, 'KFSD': 43.5877777777778, 'KFSX': 34.5744444444444, 'KFTG': 39.7866666666667, 'KFWS': 32.5730555555556, 'KGGW': 48.2063888888889, 'KGJX': 39.0622222222222, 'KGLD': 39.3663888888889, 'KGRB': 44.4983333333333, 'KGRK': 30.7219444444444, 'KGRR': 42.8938888888889, 'KGSP': 34.8833333333333, 'KGWX': 33.8966666666667, 'KGYX': 43.8913888888889, 'KHDX': 33.0763888888889, 'KHGX': 29.4719444444444, 'KHNX': 36.3141666666667, 'KHPX': 36.7366666666667, 'KHTX': 34.9305555555556, 'KICT': 37.6547222222222, 'KICX': 37.5908333333333, 'KILN': 39.4202777777778, 'KIND': 39.7075, 'KINX': 36.175, 'KIWA': 33.2891666666667, 'KIWX': 41.3588888888889, 'KJAX': 30.4847222222222, 'KJGX': 32.675, 'KJKL': 37.5908333333333, 'KLBB': 33.6538888888889, 'KLCH': 30.1252777777778, 'KLGX': 47.1169444444444, 'KLIX': 30.3366666666667, 'KLNX': 41.9577777777778, 'KLOT': 41.6047222222222, 'KLRX': 40.7397222222222, 'KLSX': 38.6988888888889, 'KLTX': 33.9894444444444, 'KLVX': 37.9752777777778, 'KLWX': 38.9752777777778, 'KLZK': 34.8366666666667, 'KMAF': 31.9433333333333, 'KMAX': 42.0811111111111, 'KMBX': 48.3925, 'KMHX': 34.7761111111111, 'KMKX': 42.9677777777778, 'KMLB': 28.1133333333333, 'KMOB': 30.6794444444444, 'KMPX': 44.8488888888889, 'KMQT': 46.5311111111111, 'KMRX': 36.1686111111111, 'KMSX': 47.0411111111111, 'KMTX': 41.2627777777778, 'KMUX': 37.155, 'KMVX': 47.5277777777778, 'KNKX': 32.9188888888889, 'KNQA': 35.3447222222222, 'KOAX': 41.3202777777778, 'KOHX': 36.2472222222222, 'KOKX': 40.8655555555556, 'KOTX': 47.6802777777778, 'KPAH': 37.0683333333333, 'KPBZ': 40.5316666666667, 'KPDT': 45.6905555555556, 'KPOE': 31.1555555555556, 'KPUX': 38.4594444444445, 'KRAX': 35.6655555555556, 'KRGX': 39.7552777777778, 'KRIW': 43.0661111111111, 'KRLX': 38.3111111111111, 'KRTX': 45.7147222222222, 'KSFX': 43.1058333333333, 'KSGF': 37.2352777777778, 'KSHV': 32.4508333333333, 'KSJT': 31.3713888888889, 'KSOX': 33.8177777777778, 'KSRX': 35.2905555555556, 'KTBW': 27.7055555555556, 'KTFX': 47.4597222222222, 'KTLH': 30.3975, 'KTLX': 35.3330555555556, 'KTWX': 38.9969444444444, 'KUDX': 44.125, 'KUEX': 40.3208333333333, 'KVAX': 30.8902777777778, 'KVBX': 34.8380555555556, 'KVNX': 36.7408333333333, 'KVTX': 34.4116666666667, 'KVWX': 38.2602777777778, 'KYUX': 32.4952777777778, 'PABC': 60.7927777777778, 'PACG': 56.8527777777778, 'PAEC': 64.5113888888889, 'PAHG': 60.7258333333333, 'PAIH': 59.4619444444444, 'PAKC': 58.6794444444444, 'PAPD': 65.035, 'PGUA': 13.4544444444444, 'PHKI': 21.8941666666667, 'PHKM': 20.1255555555556, 'PHMO': 21.1327777777778, 'PHWA': 19.095, 'RKSG': 36.9594444444445, 'TJUA': 18.1155555555556, 'KCXX': 44.51111111111111, 'KILX': 40.15055555555555, 'KTYX': 43.755833333333335}
 
@@ -35,7 +36,7 @@ def main(argv):
          print '  -r --radar    Specify NEXRAD radar, e.g. KBGM'
          print '  -d --date     Specify date in yyyy/mm/dd format'
          print '  -n --night    If set, only download nighttime data'
-         print '  -s --step     Minimum timestep in minutes between consecutive polar volumes [default: 0]'
+         print '  -s --step     Downsampling timestep in minutes between consecutive polar volumes [default: 5]'
          sys.exit()
       elif opt in ("-n", "--night"):
          night = True
@@ -44,7 +45,7 @@ def main(argv):
       elif opt in ("-r", "--radar"):
          radar = arg
       elif opt in ("-s", "--step"):
-         step = float(arg)
+         step = int(arg)
    # not working yet ... validate(date)
    if not(radar != ''):
       print 'radcp.py -r <radar> -d <date> [--night] [--step <mins>]'
@@ -54,7 +55,7 @@ def main(argv):
    latitude=NEXRADlat[radar]
    longitude=NEXRADlon[radar]
 
-   datetime_object = datetime.strptime(date, '%Y/%m/%d')
+   datetime_object = utc.localize(datetime.strptime(date, '%Y/%m/%d'))
    datetime_prev = utc.localize(datetime.strptime('1900/01/01', '%Y/%m/%d'))
    print 'Radar:', radar, 'Date:', datetime_object.strftime('%Y/%m/%d')
    print 'Lat:', latitude,'Lon:', longitude
@@ -72,8 +73,31 @@ def main(argv):
    s3 = boto.connect_s3()
 
    bucket = s3.get_bucket('noaa-nexrad-level2')
+
+   # prepare the datetimes of the radar files, and throw out non-radar files
+   datetimes = [] 
+   bucketlist = []
    for key in bucket.list(prefix=data_dir):
       fname = os.path.basename(key.name)
+      if fname[0:4] != radar:
+         continue
+      datetime_key = utc.localize(datetime.strptime(fname[4:19], '%Y%m%d_%H%M%S'))
+      datetimes.append(datetime_key)
+      bucketlist.append(key)
+ 
+   # only keep the filenames that best fit the requested time grid
+   delta = [x-datetime_object for x in datetimes]
+   date_ref = [datetime_object+timedelta(minutes=x) for x in range(0, 24*60, step)]
+   index_ref = [getNearestIndex(datetimes,x) for x in date_ref]
+   # delete duplicates, while preserving the time order of the files
+   index_ref = unique(index_ref)
+   bucketlist = [bucketlist[i] for i in index_ref]
+   
+   s3 = boto.connect_s3()
+
+   for key in bucketlist:
+      fname = os.path.basename(key.name)
+      print(fname)
       if fname[0:4] != radar:
          continue
       datetime_key = utc.localize(datetime.strptime(fname[4:19], '%Y%m%d_%H%M%S'))
@@ -84,8 +108,6 @@ def main(argv):
          else:
             if datetime_key < sun['sunset'] or datetime_key > sun['sunrise']:
                continue
-      if (datetime_key-datetime_prev).total_seconds()/60 < step:
-         continue
 
       datetime_prev=datetime_key
 
@@ -96,6 +118,16 @@ def validate(date_text):
         datetime.datetime.strptime(date_text, '%Y/%m/%d')
     except ValueError:
         raise ValueError("Incorrect data format, should be YYYY/MM/DD")
+
+def getNearestIndex(mylist,value):
+    deltas = [abs(value - x) for x in mylist]
+    output=deltas.index(min(deltas))
+    return output
+
+def unique(seq):
+    seen = set()
+    seen_add = seen.add
+    return [x for x in seq if not (x in seen or seen_add(x))]
 
 if __name__ == "__main__":
    main(sys.argv[1:])
