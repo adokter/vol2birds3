@@ -30,7 +30,7 @@ def main(argv):
    radar=''
    date = ''
    night = False
-   step = 0
+   step = 5
    zipQ = False
    aws = False
    docker = False
@@ -53,7 +53,7 @@ def main(argv):
          print '  -g --gzip     Compress output'
          print '  -d --date     Specify date in yyyy/mm/dd format'
          print '  -n --night    If set, only download nighttime data'
-         print '  -s --step     Minimum timestep in minutes between consecutive polar volumes [default: 0]'
+         print '  -s --step     Minimum timestep in minutes between consecutive polar volumes [default: 5]'
          print '  -a --aws      Store output in vol2bird bucket on aws'
          sys.exit()
       elif opt in ("-n", "--night"):
