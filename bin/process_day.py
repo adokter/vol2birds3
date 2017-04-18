@@ -138,11 +138,13 @@ def main(argv):
    fout=fout.replace('/','')
 
    with open(fout, "a") as myfile:
+      mynull = open('/dev/null', 'w')
       for pvol in pvols:
          localfile = os.path.basename(pvol)
          # process the volume file with vol2bird, write to myfile
-         call(["vol2bird",localfile],stdout=myfile)
+         call(["vol2bird",localfile],stdout=myfile,stderr=mynull)
       myfile.close()
+      mynull.close()
       # compress myfile and copy it to original working directory
       if zipQ:
          with open(fout, "r") as myfile:

@@ -66,10 +66,20 @@ def main(argv):
    l.longitude=longitude
    l.latitude=latitude
    sun=l.sun(date=datetime_object)
+   sunprev=l.sun(date=datetime_object-timedelta(days=1))
+
    # print('   Sunrise: %s' % str(sun['sunrise']))
    # print('    Sunset: %s' % str(sun['sunset']))
+   # print('PrevSunset: %s' % str(sunprev['sunset']))
 
-   data_dir=sun['sunrise'].strftime('%Y/%m/%d/'+radar)
+   sunrise=sun['sunrise']
+   if sun['sunrise'].day != sun['sunset'].day:
+      sunset = sunprev['sunset']
+   else:
+      sunset = sun['sunset']
+
+   data_dir=sunrise.strftime('%Y/%m/%d/'+radar)
+
    s3 = boto.connect_s3()
 
    bucket = s3.get_bucket('noaa-nexrad-level2')
@@ -101,11 +111,11 @@ def main(argv):
          continue
       datetime_key = utc.localize(datetime.strptime(fname[4:19], '%Y%m%d_%H%M%S'))
       if night:
-         if sun['sunrise'] < sun['sunset']:
-            if datetime_key > sun['sunrise'] and datetime_key < sun['sunset']:
+         if sunrise < sunset:
+            if datetime_key > sunrise and datetime_key < sunset:
                continue
          else:
-            if datetime_key < sun['sunset'] or datetime_key > sun['sunrise']:
+            if datetime_key < sunset or datetime_key > sunrise:
                continue
 
       datetime_prev=datetime_key
