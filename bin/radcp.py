@@ -57,17 +57,17 @@ def main(argv):
 
    datetime_object = utc.localize(datetime.strptime(date, '%Y/%m/%d'))
    datetime_prev = utc.localize(datetime.strptime('1900/01/01', '%Y/%m/%d'))
-   print '     Radar:', radar, 'Date:', datetime_object.strftime('%Y/%m/%d')
-   print '       Lat:', latitude,'Lon:', longitude
-   print 'Night only:', night
+   # print '     Radar:', radar, 'Date:', datetime_object.strftime('%Y/%m/%d')
+   # print '       Lat:', latitude,'Lon:', longitude
+   # print 'Night only:', night
 
    l=astral.Location()
    l.timezone='UTC'
    l.longitude=longitude
    l.latitude=latitude
    sun=l.sun(date=datetime_object)
-   print('   Sunrise: %s' % str(sun['sunrise']))
-   print('    Sunset: %s' % str(sun['sunset']))
+   # print('   Sunrise: %s' % str(sun['sunrise']))
+   # print('    Sunset: %s' % str(sun['sunset']))
 
    data_dir=sun['sunrise'].strftime('%Y/%m/%d/'+radar)
    s3 = boto.connect_s3()
