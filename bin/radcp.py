@@ -18,7 +18,7 @@ def main(argv):
    radar=''
    date = ''
    night = False
-   step = 0
+   step = 5
    utc=pytz.UTC
    try:
       opts, args = getopt.getopt(argv,"hnr:d:s:",["night","radar=","date=","step="])
@@ -120,6 +120,7 @@ def main(argv):
 
       datetime_prev=datetime_key
 
+      # print key
       key.get_contents_to_filename(fname)
 
 def validate(date_text):
