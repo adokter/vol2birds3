@@ -45,7 +45,7 @@ def main(argv):
          print '  -n --night    If set, only download nighttime data'
          print '  -g --gzip     Compress output'
          print '  -a --aws      Store output in vol2bird bucket on aws'
-         print '  -c --clut     Use cluttermap'
+         print '  -c --clut     Use cluttermap [docker container option only, ignored otherwise]'
          sys.exit()
       elif opt in ("-n", "--night"):
          night = True
@@ -123,18 +123,15 @@ def main(argv):
       optsfile.close()
 
    # append cluttermap filename to options.conf
-   if clut:
-      if os.path.exists("options.conf"):
-         mode="a"
-      else:
-         mode="w"
-      optsfile =  open("options.conf", mode)
-      optsfile.write("\nUSE_CLUTTERMAP=TRUE\nCLUTTERMAP=/opt/occult/"+radar+".h5")
-      optsfile.close()
-
-      with open("options.conf", 'r') as fin:
-         print "\nReading these options from options.conf:"
-         print fin.read()
+   if docker:
+      if clut:
+         if os.path.exists("options.conf"):
+            mode="a"
+         else:
+            mode="w"
+         optsfile =  open("options.conf", mode)
+         optsfile.write("\nUSE_CLUTTERMAP=TRUE\nCLUTTERMAP=/opt/occult/"+radar+".h5")
+         optsfile.close()
 
    # construct output filename from input argument string
    fout=radar+date+".txt"
