@@ -50,7 +50,7 @@ def main(argv):
    datetimes = [mydatetime+timedelta(days=x) for x in range(0,mydays)]
 
    for t in datetimes:
-      params={'radar':myradar, 'date':t.strftime("%Y/%m/%d")}
+      params={'radar':myradar, 'date':t.strftime("%Y/%m/%d"), 'opts':'RESAMPLE=TRUE'}
       print "submitting job "+myradar+t.strftime("%Y%m%d")+"..."
       response = client.submit_job(
       jobDefinition='vol2birds3-job:12',

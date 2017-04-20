@@ -94,6 +94,9 @@ def main(argv):
       datetime_key = utc.localize(datetime.strptime(fname[4:19], '%Y%m%d_%H%M%S'))
       datetimes.append(datetime_key)
       bucketlist.append(key)
+
+   if len(bucketlist) == 0:
+      sys.exit()
  
    # only keep the filenames that best fit the requested time grid
    delta = [x-datetime_object for x in datetimes]
