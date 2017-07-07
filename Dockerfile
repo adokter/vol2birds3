@@ -11,5 +11,3 @@ COPY bin/process_day.py /opt/process_day.py
 COPY occult /opt/occult
 
 WORKDIR /opt
-
-CMD ["./process_day.py"]

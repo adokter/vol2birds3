@@ -14,19 +14,6 @@ from boto.s3.key import Key
 def main(argv):
    me = sys.argv[0] 
 
-   if len(argv) == 0:
-      # no input arguments, check whether an ARGS environment variable is set
-      if not "ARGS" in os.environ:
-         print >> sys.stderr, "No input arguments and environment variable 'ARGS' not found, aborting"
-         sys.exit()
-
-      # get the contents of the ARGS environment variable
-      args = os.environ["ARGS"]
-      print "executing",me,args
-      argslist=args.split()
-   else:
-      argslist = argv
-
    radar=''
    date = ''
    night = False
@@ -34,27 +21,31 @@ def main(argv):
    zipQ = False
    aws = False
    docker = False
+   clut = False
+   config = ''
 
    try:
-      opts, args = getopt.getopt(argslist,"hangr:d:s:",["help","aws","night","gzip","radar=","date=","step="])
+      opts, args = getopt.getopt(argv,"hangcr:d:s:o:",["help","aws","night","gzip","clut","radar=","date=","step=","opts="])
    except getopt.GetoptError:
       print "error: unrecognised arguments"
-      print me+' -r <radar> -d <date> [--night] [--gzip] [--step <mins>] [--aws]'
+      print me+' -r <radar> -d <date> [--step <mins>] [--opts <options>] [--night] [--gzip] [--aws] [--clut]'
       print me+' -h | --help'
       sys.exit(2)
    for opt, arg in opts:
       if opt in ('-h', "--help"):
          print 'Usage: '
-         print '  '+me+' -r <radar> -d <date> [--night] [--gzip] [--step <mins>] [--aws]'
+         print '  '+me+' -r <radar> -d <date> [--step <mins>] [--opts <options>] [--night] [--gzip] [--aws] [--clut]'
          print '  '+me+' -h | --help'
          print '\nOptions:'
          print '  -h --help     Show this screen'
          print '  -r --radar    Specify NEXRAD radar, e.g. KBGM'
-         print '  -g --gzip     Compress output'
          print '  -d --date     Specify date in yyyy/mm/dd format'
-         print '  -n --night    If set, only download nighttime data'
          print '  -s --step     Minimum timestep in minutes between consecutive polar volumes [default: 5]'
+         print '  -o --opts     The options.conf file to use, separate lines by "\\n"'
+         print '  -n --night    If set, only download nighttime data'
+         print '  -g --gzip     Compress output'
          print '  -a --aws      Store output in vol2bird bucket on aws'
+         print '  -c --clut     Use cluttermap [docker container option only, ignored otherwise]'
          sys.exit()
       elif opt in ("-n", "--night"):
          night = True
@@ -62,15 +53,19 @@ def main(argv):
          aws = True
       elif opt in ("-g", "--gzip"):
          zipQ = True
+      elif opt in ("-c", "--clut"):
+         clut = True
       elif opt in ("-d", "--date"):
          date = arg
       elif opt in ("-r", "--radar"):
          radar = arg
       elif opt in ("-s", "--step"):
          step = float(arg)
+      elif opt in ("-o","--opts"):
+         config = arg
    if not(radar != '' and date != ''):
       print "error: both a radar and date specification required"
-      print me+' -r <radar> -d <date> [--night] [--gzip] [--step <mins>] [--aws]'
+      print me+' -r <radar> -d <date> [--step <mins>] [--opts <options>] [--night] [--gzip] [--aws] [--clut]'
       print me+' -h | --help'
       sys.exit()
 
@@ -91,7 +86,7 @@ def main(argv):
 
    # copy the radar files, using radcp with arguments split as a list
    # keep only the radcp arguements
-   argscp=argslist
+   argscp=argv
    if '--gzip' in argscp:
       argscp.remove('--gzip')
    if '-g' in argscp:
@@ -100,6 +95,14 @@ def main(argv):
       argscp.remove('--aws')
    if '-a' in argscp:
       argscp.remove('-a')
+   if '--opts' in argscp:
+      argscp.remove('--opts')
+   if '-o' in argscp:
+      argscp.remove('-o')
+   if '--clut' in argscp:
+      argscp.remove('--clut')
+   if '-c' in argscp:
+      argscp.remove('-c')
    radcp.main(argscp)
 
    # count the number of files
@@ -112,24 +115,36 @@ def main(argv):
    # get the file list of polar volumes to be processed
    pvols = sorted(os.listdir(tmppath))
 
-   # write an option file if OPTS environment variable is set
+   # write an option file if opts argument is set
    # should contain option.conf statements separated by \n
-   if "OPTS" in os.environ:
+   if config != '':
       optsfile = open("options.conf", "w")
-      opts = os.environ["OPTS"].replace('\\n', '\n')
-      optsfile.write(opts)
+      optsfile.write(config.replace('\\n', '\n'))
       optsfile.close()
+
+   # append cluttermap filename to options.conf
+   if docker:
+      if clut:
+         if os.path.exists("options.conf"):
+            mode="a"
+         else:
+            mode="w"
+         optsfile =  open("options.conf", mode)
+         optsfile.write("\nUSE_CLUTTERMAP=TRUE\nCLUTTERMAP=/opt/occult/"+radar+".h5")
+         optsfile.close()
 
    # construct output filename from input argument string
    fout=radar+date+".txt"
    fout=fout.replace('/','')
 
    with open(fout, "a") as myfile:
+      mynull = open('/dev/null', 'w')
       for pvol in pvols:
          localfile = os.path.basename(pvol)
          # process the volume file with vol2bird, write to myfile
-         call(["vol2bird",localfile],stdout=myfile)
+         call(["vol2bird",localfile],stdout=myfile,stderr=mynull)
       myfile.close()
+      mynull.close()
       # compress myfile and copy it to original working directory
       if zipQ:
          with open(fout, "r") as myfile:
