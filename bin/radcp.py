@@ -52,7 +52,7 @@ def main(argv):
          step = int(arg)
    # not working yet ... validate(date)
    if not(radar != ''):
-      print 'radcp.py -r <radar> -d <date> [--night] [--step <mins>]'
+      print 'radcp.py -r <radar> -d <date> [--night] [--midday] [--step <mins>]'
       print 'radcp.py -h | --help'
       sys.exit()
 
@@ -81,9 +81,17 @@ def main(argv):
       sunset = sunprev['sunset']
    else:
       sunset = sun['sunset']
-   
-   daylength=(sunset-sunrise)
-   noon=sunrise+daylength/2
+  
+   daylength=sun['sunset']-sun['sunrise']
+ 
+   if sunrise<sunset:
+      noon=sunrise+daylength/2
+   else:
+      if (sunrise+daylength/2).day == sunset.day:
+         noon=sunrise+daylength/2
+      else:
+         daylength=sunprev['sunset']-sunprev['sunrise']
+         noon=sunrise-daylength/2
 
    data_dir=sunrise.strftime('%Y/%m/%d/'+radar)
 
