@@ -57,7 +57,7 @@ def main(argv):
       params={'radar':myradar, 'date':t.strftime("%Y/%m/%d"), 'opts':'RESAMPLE=TRUE'}
       print "submitting job "+myradar+t.strftime("%Y%m%d")+"..."
       response = client.submit_job(
-      jobDefinition='vol2birds3-job:12',
+      jobDefinition='vol2birds3-job:13',
       jobName=myradar+t.strftime("%Y%m%d"),
       jobQueue=myqueue,
       parameters=params)
