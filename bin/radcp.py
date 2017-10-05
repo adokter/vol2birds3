@@ -21,16 +21,17 @@ def main(argv):
    midday = False
    step = 5
    utc=pytz.UTC
+   dryrun=False
    try:
-      opts, args = getopt.getopt(argv,"hnmr:d:s:",["night","midday","radar=","date=","step="])
+      opts, args = getopt.getopt(argv,"hnmr:d:s:",["night","midday","radar=","date=","step=","dryrun"])
    except getopt.GetoptError:
-      print 'radcp.py -r <radar> -d <date> [--night] [--midday] [--step <mins>]'
+      print 'radcp.py -r <radar> -d <date> [--night] [--midday] [--step <mins>] [--dryrun]'
       print 'radcp.py -h | --help'
       sys.exit(2)
    for opt, arg in opts:
       if opt == '-h':
          print 'Usage: '
-         print '  radcp.py -r <radar> -d <date> [--night] [--midday] [--step <mins>]'
+         print '  radcp.py -r <radar> -d <date> [--night] [--midday] [--step <mins>] [--dryrun]'
          print '  radcp.py -h | --help'
          print '\nOptions:'
          print '  -h --help     Show this screen'
@@ -39,6 +40,7 @@ def main(argv):
          print '  -n --night    If set, only download nighttime data'
          print '  -m --midday   If set, only download data file closest to noon'
          print '  -s --step     Downsampling timestep in minutes between consecutive polar volumes [default: 5]'
+         print '  --dryrun      If set, do not download the data but list files selected for download'
          sys.exit()
       elif opt in ("-n", "--night"):
          night = True
@@ -50,9 +52,11 @@ def main(argv):
          radar = arg
       elif opt in ("-s", "--step"):
          step = int(arg)
+      elif opt in ("--dryrun"):
+         dryrun = True
    # not working yet ... validate(date)
    if not(radar != ''):
-      print 'radcp.py -r <radar> -d <date> [--night] [--midday] [--step <mins>]'
+      print 'radcp.py -r <radar> -d <date> [--night] [--midday] [--step <mins>] [--dryrun]'
       print 'radcp.py -h | --help'
       sys.exit()
 
@@ -141,8 +145,11 @@ def main(argv):
 
       datetime_prev=datetime_key
 
-      # print key
-      key.get_contents_to_filename(fname)
+      # print or copy key
+      if dryrun:
+         print fname
+      else:
+         key.get_contents_to_filename(fname)
 
 def validate(date_text):
     try:
