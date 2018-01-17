@@ -13,21 +13,22 @@ def main(argv):
    mydays=0
    myqueue=''
    mynight=" "
-   mydown='DEALIAS_VRAD=TRUE' #this is the unrelated default option, improve ugly coding here ... trick to bypass that parameters need value
+   myoptions=''
    mystep="10"
+   myjob=''
+   mybucket = 'vol2bird'
+   myprefix = 'singlepol'
+   dryrun = False
 
    try:
-      opts, args = getopt.getopt(argv,"hNDr:d:n:s:q:",["help","night","downsample","radar=","date=","nday=","step=","queue="])
+      opts, args = getopt.getopt(argv,"hNDr:d:n:s:o:j:q:b:p:",["help","night","dryrun","radar=","date=","nday=","step=","opts=","job=","queue=","bucket=","prefix="])
    except getopt.GetoptError:
       print "error: unrecognised arguments"
-      print me+' -r <radar> -d <date> -n <nday> -s <step> -q <queue> [--night] [--downsample]'
-      print me+' -h | --help'
+      printSyntax(me)
       sys.exit(2)
    for opt, arg in opts:
       if opt in ('-h', "--help"):
-         print 'Usage: '
-         print '  '+me+' -r <radar> -d <date> -n <nday> -s <step> -q <queue> [--night] [--downsample]'
-         print '  '+me+' -h | --help'
+         printSyntax(me)
          print '\nOptions:'
          print '  -h --help       Show this screen'
          print '  -r --radar      Specify NEXRAD radar, e.g. KBGM'
@@ -35,8 +36,12 @@ def main(argv):
          print '  -n --nday       Specify the number of days to process, starting from start date'
          print '  -s --step       Specify the time step in minutes'
          print '  -q --queue      Specify the AWS batch job queue to submit to'
+         print '  -j --job        Specify the AWS batch job definition to use'
          print '  -N --night      Nighttime only'
-         print '  -D --downsample Downsample for faster processing'
+         print '  -o --opts       Options to write to options.conf file read by vol2bird; separate lines by "\\n"'
+         print '  -b --bucket     The AWS bucket name where profiles will be stored"'
+         print '  -p --prefix     The AWS prefix (i.e. bucket postfix) of the filename for storing profiles"'
+         print '  -D --dryrun     Do not execute, dry run only'
          sys.exit()
       elif opt in ("-d", "--date"):
          mydate = arg
@@ -50,12 +55,19 @@ def main(argv):
          myqueue = arg
       elif opt in ("-N", "--night"):
          mynight = "--night"
-      elif opt in ("-D", "--downsample"):
-         mydown = "RESAMPLE=TRUE"
-   if not(myradar != '' and mydate != '' and mydays>0):
-      print "error: both a radar, date and nday specification required"
-      print me+' -r <radar> -d <date> -n <nday> -s <step> -q <queue> [--night] [--downsample]'
-      print me+' -h | --help'
+      elif opt in ("-o", "--opts"):
+         myoptions = arg
+      elif opt in ("-j", "--job"):
+         myjob = arg
+      elif opt in ("-b","--bucket"):
+         mybucket = arg
+      elif opt in ("-p","--prefix"):
+         myprefix = arg
+      elif opt in ("-D","--dryrun"):
+         dryrun = True
+   if not(myradar != '' and mydate != '' and mydays>0 and myjob !=''):
+      print "error: both a radar, date, job, queue, and nday specification required"
+      printSyntax(me)
       sys.exit()
 
    utc=pytz.UTC
@@ -66,16 +78,27 @@ def main(argv):
    datetimes = [mydatetime+timedelta(days=x) for x in range(0,mydays)]
 
    for t in datetimes:
-      #params={'radar':myradar, 'date':t.strftime("%Y/%m/%d"), 'step':mystep, 'opts':mydown, 'night':mynight}
-      #note!! removed night parameter
-      params={'radar':myradar, 'date':t.strftime("%Y/%m/%d"), 'step':mystep, 'opts':mydown}
+      if myoptions == '' and myprefix == '':
+         params={'radar':myradar, 'date':t.strftime("%Y/%m/%d"), 'step':mystep, 'night':mynight, 'bucket':mybucket}
+      elif myoptions == '' and myprefix != '':
+         params={'radar':myradar, 'date':t.strftime("%Y/%m/%d"), 'step':mystep, 'night':mynight, 'bucket':mybucket, 'prefix':myprefix}
+      elif myoptions != '' and myprefix == '':
+         params={'radar':myradar, 'date':t.strftime("%Y/%m/%d"), 'step':mystep, 'opts':myoptions, 'night':mynight, 'bucket':mybucket}
+      else:
+         params={'radar':myradar, 'date':t.strftime("%Y/%m/%d"), 'step':mystep, 'opts':myoptions, 'night':mynight, 'bucket':mybucket, 'prefix':myprefix}
       print params
-      print "submitting job "+myradar+t.strftime("%Y%m%d")+"..."
-      response = client.submit_job(
-      jobDefinition='vol2birds3-job:16', #note!! in revision 16 I removed the night parameter
-      jobName=myradar+t.strftime("%Y%m%d"),
-      jobQueue=myqueue,
-      parameters=params)
+      print "submitting job "+myradar+t.strftime("%Y%m%d")+" using job definition "+myjob+" and queue "+myqueue+"..."
+      if not(dryrun):
+         response = client.submit_job(
+         jobDefinition=myjob,
+         jobName=myradar+t.strftime("%Y%m%d"),
+         jobQueue=myqueue,
+         parameters=params)
+
+def printSyntax(me):
+   print 'Usage: '
+   print '  '+me+' -r <radar> -d <date> -n <nday> -j <job> -q <queue> [-s <step>] [-b <bucket>] [-p <prefix>] [--night] [--dryrun]'
+   print '  '+me+' -h | --help'
 
 if __name__ == "__main__":
    main(sys.argv[1:])
