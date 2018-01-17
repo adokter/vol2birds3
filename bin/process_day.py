@@ -23,18 +23,19 @@ def main(argv):
    docker = False
    clut = False
    config = ''
+   bucket = 'vol2bird'
 
    try:
-      opts, args = getopt.getopt(argv,"hangcr:d:s:o:",["help","aws","night","gzip","clut","radar=","date=","step=","opts="])
+      opts, args = getopt.getopt(argv,"hangcr:d:s:o:b:",["help","aws","night","gzip","clut","radar=","date=","step=","opts=","bucket="])
    except getopt.GetoptError:
       print "error: unrecognised arguments"
-      print me+' -r <radar> -d <date> [--step <mins>] [--opts <options>] [--night] [--gzip] [--aws] [--clut]'
+      print me+' -r <radar> -d <date> [--step <mins>] [--opts <options>] [--bucket <bucket>] [--night] [--gzip] [--aws] [--clut]'
       print me+' -h | --help'
       sys.exit(2)
    for opt, arg in opts:
       if opt in ('-h', "--help"):
          print 'Usage: '
-         print '  '+me+' -r <radar> -d <date> [--step <mins>] [--opts <options>] [--night] [--gzip] [--aws] [--clut]'
+         print '  '+me+' -r <radar> -d <date> [--step <mins>] [--opts <options>] [--bucket <bucket>] [--night] [--gzip] [--aws] [--clut]'
          print '  '+me+' -h | --help'
          print '\nOptions:'
          print '  -h --help     Show this screen'
@@ -42,6 +43,7 @@ def main(argv):
          print '  -d --date     Specify date in yyyy/mm/dd format'
          print '  -s --step     Minimum timestep in minutes between consecutive polar volumes [default: 5]'
          print '  -o --opts     The options.conf file to use, separate lines by "\\n"'
+         print '  -b --bucket   The bucket name where profiles will be stored"'
          print '  -n --night    If set, only download nighttime data'
          print '  -g --gzip     Compress output'
          print '  -a --aws      Store output in vol2bird bucket on aws'
@@ -63,9 +65,11 @@ def main(argv):
          step = float(arg)
       elif opt in ("-o","--opts"):
          config = arg
+      elif opt in ("-b","--bucket"):
+         bucket = arg
    if not(radar != '' and date != ''):
       print "error: both a radar and date specification required"
-      print me+' -r <radar> -d <date> [--step <mins>] [--opts <options>] [--night] [--gzip] [--aws] [--clut]'
+      print me+' -r <radar> -d <date> [--step <mins>] [--opts <options>] [--bucket <bucket>] [--night] [--gzip] [--aws] [--clut]'
       print me+' -h | --help'
       sys.exit()
 
@@ -103,6 +107,10 @@ def main(argv):
       argscp.remove('--clut')
    if '-c' in argscp:
       argscp.remove('-c')
+   if '--bucket' in argscp:
+      argscp.remove('--bucket')
+   if '-b' in argscp:
+      argscp.remove('-b')
    radcp.main(argscp)
 
    # count the number of files
@@ -159,7 +167,7 @@ def main(argv):
    # upload the output to s3
    if aws:
       conn = boto.connect_s3()
-      bucket = conn.get_bucket('vol2bird')
+      bucket = conn.get_bucket(bucket)
       k = Key(bucket)
       k.key = radar+"/"+date+"/"+fout 
       k.set_contents_from_filename(fout)
