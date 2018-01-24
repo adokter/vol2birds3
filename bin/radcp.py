@@ -18,32 +18,36 @@ def main(argv):
    radar=''
    date = ''
    night = False
+   day = False
    midday = False
    step = 5
    utc=pytz.UTC
    dryrun=False
    try:
-      opts, args = getopt.getopt(argv,"hnmr:d:s:",["night","midday","radar=","date=","step=","dryrun"])
+      opts, args = getopt.getopt(argv,"hnDmr:d:s:",["night","day","midday","radar=","date=","step=","dryrun"])
    except getopt.GetoptError:
-      print 'radcp.py -r <radar> -d <date> [--night] [--midday] [--step <mins>] [--dryrun]'
+      print 'radcp.py -r <radar> -d <date> [--night] [--day] [--midday] [--step <mins>] [--dryrun]'
       print 'radcp.py -h | --help'
       sys.exit(2)
    for opt, arg in opts:
       if opt == '-h':
          print 'Usage: '
-         print '  radcp.py -r <radar> -d <date> [--night] [--midday] [--step <mins>] [--dryrun]'
+         print '  radcp.py -r <radar> -d <date> [--night] [--day] [--midday] [--step <mins>] [--dryrun]'
          print '  radcp.py -h | --help'
          print '\nOptions:'
          print '  -h --help     Show this screen'
          print '  -r --radar    Specify NEXRAD radar, e.g. KBGM'
          print '  -d --date     Specify date in yyyy/mm/dd format'
          print '  -n --night    If set, only download nighttime data'
+         print '  -D --day      If set, only download daytime data'
          print '  -m --midday   If set, only download data file closest to noon'
          print '  -s --step     Downsampling timestep in minutes between consecutive polar volumes [default: 5]'
          print '  --dryrun      If set, do not download the data but list files selected for download'
          sys.exit()
       elif opt in ("-n", "--night"):
          night = True
+      elif opt in ("-D", "--day"):
+         day = True
       elif opt in ("-m", "--midday"):
          midday = True
       elif opt in ("-d", "--date"):
@@ -56,7 +60,7 @@ def main(argv):
          dryrun = True
    # not working yet ... validate(date)
    if not(radar != ''):
-      print 'radcp.py -r <radar> -d <date> [--night] [--midday] [--step <mins>] [--dryrun]'
+      print 'radcp.py -r <radar> -d <date> [--night] [--day] [--midday] [--step <mins>] [--dryrun]'
       print 'radcp.py -h | --help'
       sys.exit()
 
@@ -142,6 +146,14 @@ def main(argv):
          else:
             if datetime_key < sunset or datetime_key > sunrise:
                continue
+      if day:
+         if sunrise < sunset:
+            if not (datetime_key > sunrise and datetime_key < sunset):
+               continue
+         else:
+            if not (datetime_key < sunset or datetime_key > sunrise):
+               continue
+
 
       datetime_prev=datetime_key
 
