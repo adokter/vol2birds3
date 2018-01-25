@@ -55,9 +55,15 @@ def main(argv):
       elif opt in ("-q", "--queue"):
          myqueue = arg
       elif opt in ("-N", "--night"):
-         mynight = "--night"
+         if mynight == "--day":
+            mynight = "--night --day"
+         else:
+            mynight = "--night"
       elif opt in ("--day"):
-         mynight = "--day"
+         if mynight == "--night":
+            mynight = "--night --day"
+         else:
+            mynight = "--day"
       elif opt in ("-o", "--opts"):
          myoptions = arg
       elif opt in ("-j", "--job"):
