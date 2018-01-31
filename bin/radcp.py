@@ -139,7 +139,7 @@ def main(argv):
       if fname[0:4] != radar:
          continue
       datetime_key = utc.localize(datetime.strptime(fname[4:19], '%Y%m%d_%H%M%S'))
-      if not (day and night)
+      if not (day and night):
          if night:
             if sunrise < sunset:
                if datetime_key > sunrise and datetime_key < sunset:
