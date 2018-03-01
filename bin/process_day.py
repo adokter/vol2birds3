@@ -17,6 +17,7 @@ def main(argv):
    radar=''
    date = ''
    night = False
+   day = False
    step = 5
    zipQ = False
    aws = False
@@ -27,7 +28,7 @@ def main(argv):
    prefix = ''
 
    try:
-      opts, args = getopt.getopt(argv,"hangcr:d:s:o:b:p:",["help","aws","night","gzip","clut","radar=","date=","step=","opts=","bucket=","prefix="])
+      opts, args = getopt.getopt(argv,"hanDgcr:d:s:o:b:p:",["help","aws","night","day","gzip","clut","radar=","date=","step=","opts=","bucket=","prefix="])
    except getopt.GetoptError:
       print "error: unrecognised arguments"
       printSyntax(me)
@@ -39,6 +40,8 @@ def main(argv):
          sys.exit()
       elif opt in ("-n", "--night"):
          night = True
+      elif opt in ("-D", "--day"):
+         day = True
       elif opt in ("-a", "--aws"):
          aws = True
       elif opt in ("-g", "--gzip"):
@@ -175,7 +178,7 @@ def main(argv):
 
 def printSyntax(me):
     print 'Usage: '
-    print '  '+me+' -r <radar> -d <date> [--step <mins>] [--opts <options>] [--bucket <bucket>] [--prefix <prefix>] [--night] [--gzip] [--aws] [--clut]'
+    print '  '+me+' -r <radar> -d <date> [--step <mins>] [--opts <options>] [--bucket <bucket>] [--prefix <prefix>] [--night] [--day] [--gzip] [--aws] [--clut]'
     print '  '+me+' -h | --help'
 
 def printOptions():
@@ -188,6 +191,7 @@ def printOptions():
     print '  -b --bucket   The AWS bucket name where profiles will be stored [default: vol2bird]'
     print '  -p --prefix   The AWS prefix (i.e. bucket postfix) to add to the filename for storing profiles'
     print '  -n --night    If set, only download nighttime data'
+    print '  -d --day      If set, only download daytime data'
     print '  -g --gzip     Compress output'
     print '  -a --aws      Store output in bucket on aws'
     print '  -c --clut     Use cluttermap [docker container option only, ignored otherwise]'

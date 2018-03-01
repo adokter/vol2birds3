@@ -21,7 +21,7 @@ def main(argv):
    dryrun = False
 
    try:
-      opts, args = getopt.getopt(argv,"hNDr:d:n:s:o:j:q:b:p:",["help","night","dryrun","radar=","date=","nday=","step=","opts=","job=","queue=","bucket=","prefix="])
+      opts, args = getopt.getopt(argv,"hNDr:d:n:s:o:j:q:b:p:",["help","night","day","dryrun","radar=","date=","nday=","step=","opts=","job=","queue=","bucket=","prefix="])
    except getopt.GetoptError:
       print "error: unrecognised arguments"
       printSyntax(me)
@@ -38,6 +38,7 @@ def main(argv):
          print '  -q --queue      Specify the AWS batch job queue to submit to'
          print '  -j --job        Specify the AWS batch job definition to use'
          print '  -N --night      Nighttime only'
+         print '     --day        Daytime only'
          print '  -o --opts       Options to write to options.conf file read by vol2bird; separate lines by "\\n"'
          print '  -b --bucket     The AWS bucket name where profiles will be stored"'
          print '  -p --prefix     The AWS prefix (i.e. bucket postfix) of the filename for storing profiles"'
@@ -54,7 +55,15 @@ def main(argv):
       elif opt in ("-q", "--queue"):
          myqueue = arg
       elif opt in ("-N", "--night"):
-         mynight = "--night"
+         if mynight == "--day":
+            mynight = "--night --day"
+         else:
+            mynight = "--night"
+      elif opt in ("--day"):
+         if mynight == "--night":
+            mynight = "--night --day"
+         else:
+            mynight = "--day"
       elif opt in ("-o", "--opts"):
          myoptions = arg
       elif opt in ("-j", "--job"):
