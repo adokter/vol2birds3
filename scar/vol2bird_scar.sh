@@ -13,29 +13,8 @@ echo "SCRIPT: Invoked processing script. File available in $SCAR_INPUT_FILE"
 FILE_NAME=`basename $SCAR_INPUT_FILE`
 OUTPUT_FILE=$OUTPUT_DIR/$FILE_NAME".h5"
 
-# do some selection on date
-#DATE_FILE=${FILE_NAME:4:8}
-#HOUR_FILE=${FILE_NAME:13:2}
-#DATE_MIN=`date --date="7 days ago" +"%Y%m%d"`
-#RADAR=${FILE_NAME:0:4}
-
-#if [ ${RADAR:0:1} != "K" ];
-#then 
-#    echo "SCRIPT: not a USA radar, ignoring ...";
-#    exit 1
-#fi;
-
-#if [ $DATE_FILE \< $DATE_MIN ];
-#then 
-#    echo "SCRIPT: file over a week old, ignoring...";
-#    exit 1
-#fi;
-
-#if [ $HOUR_FILE \< 22 ] && [ $HOUR_FILE \> 14 ];
-#then
-#    echo "SCRIPT: daytime, ignoring ...";
-#    exit 1
-#fi;
+# note: date / radar selections occur in the python script that calls this bash script:
+# https://github.com/adokter/scar/blob/master/lambda/scarsupervisor.py 
 
 echo "SCRIPT: invoked vol2bird";
 vol2bird $SCAR_INPUT_FILE $OUTPUT_FILE > /dev/null
