@@ -138,7 +138,7 @@ def main(argv):
 
 def printSyntax(me):
     print('Usage: ')
-    print('  '+me+' -key <key> [--opts <options>] [--bucket <bucket>] [--prefix <prefix>] [--aws] [--clut]')
+    print('  '+me+' --key <key> [--opts <options>] [--bucket <bucket>] [--prefix <prefix>] [--aws] [--clut]')
     print('  '+me+' -h | --help')
 
 def printOptions():

@@ -1,9 +1,10 @@
 FROM adokter/vol2bird
 RUN \
   apt-get update && apt-get install --no-install-recommends -y \
-  python python-pip && \
+  python python-pip python-setuptools && \
   rm -rf /var/lib/apt/lists/* && \
-  pip install boto pytz astral
+  pip install boto pytz astral && \
+  python -m pip install boto3
 
 ENV INSIDE_DOCKER_CONTAINER Yes
 
