@@ -106,7 +106,7 @@ def main(argv):
    # construct output filename from input argument string
    fout=localfile+".txt"
    h5file=localfile+".h5"
-   s3file=prefix+"/"+radar+"/"+date+"/"+h5file
+   s3file=prefix+"/"+date+"/"+radar+"/"+h5file
 
    with open(fout, "a") as myfile:
       mynull = open('/dev/null', 'w')
