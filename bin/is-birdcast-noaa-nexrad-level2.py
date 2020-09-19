@@ -2,6 +2,8 @@ from __future__ import print_function
 
 import json
 import boto3
+from os.path import basename
+from datetime import datetime, timedelta
 
 print('Loading function')
 
@@ -19,6 +21,14 @@ def is_sns_event(event):
             return False
     else:
         return False
+
+def get_s3_record(event):
+    if check_key_existence_in_dictionary('Records', event):
+        if len(event['Records']) > 1:
+            logger.warning("Multiple records detected. Only processing the first one.")
+        record = event['Records'][0]
+        if check_key_existence_in_dictionary('s3', record):
+            return record['s3']
 
 def get_sns_s3_record(event):
     if check_key_existence_in_dictionary('Records', event):
@@ -54,11 +64,11 @@ def lambda_handler(event, context):
     # AWS Batch job and S3 bucket definitions:
     jobQueue="is-birdcast-observed-vol2bird"
     jobDefinition="is-birdcast-observed-vol2bird"
-    bucket="is-birdcast-observed"
-    s3_profiles="output_test"
+    bucket_out="is-birdcast-observed"
+    prefix="output_test"
 
-    # Log the received event
-    print("Received event: " + json.dumps(event, indent=2))
+    # Log the received event (commented out)
+    # print("Received event: " + json.dumps(event, indent=2))
     # Get parameters for the SubmitJob call
     # http://docs.aws.amazon.com/batch/latest/APIReference/API_SubmitJob.html
 
@@ -66,20 +76,24 @@ def lambda_handler(event, context):
         if validate_event(event,context):
             s3_record = get_sns_s3_record(event)
             key = basename(s3_record['object']['key'])
+            bucket_in = s3_record['bucket']['name']
             
             # set job name equal to the file key
             jobName=key
             
             # construct the AWS Batch parameters to parse
-            parameters={'file':key, 'bucket':bucket, 'prefix':prefix}
+            parameters={'key':key, 'source':bucket_in, 'bucket':bucket_out, 'prefix':prefix, 'clut':"--clut", 'aws':"--aws", 'opts':"NLAYER=50\nHLAYER=100.0"}
             
             # Submit a Batch Job
             response = batch.submit_job(jobQueue=jobQueue, jobName=jobName, jobDefinition=jobDefinition,
                                         parameters=parameters)
-            # Log response from AWS Batch
-            print("Response: " + json.dumps(response, indent=2))
+            # Log response from AWS Batch (commented out)
+            # print("Response: " + json.dumps(response, indent=2))
+            
             # Return the jobId
             jobId = response['jobId']
+            print("AWS Batch jobId: ", jobId)
+            
             return {
                 'jobId': jobId
             }

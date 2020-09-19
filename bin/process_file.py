@@ -1,3 +1,4 @@
+#!/usr/bin/python
 import sys
 import boto3
 import os
