@@ -65,12 +65,8 @@ def main(argv):
       printSyntax(me)
       sys.exit()
 
-   # check whether we are inside a Docker container
-   fcgroup="/proc/1/cgroup"
-   if os.path.exists(fcgroup):
-      with open(fcgroup, "r") as cgroupfile:
-         if "docker" in cgroupfile.read():
-             docker=True
+   # check whether we are inside a Docker container (environment variable set in Dockerfile)
+   docker = os.environ.get('INSIDE_DOCKER_CONTAINER', False)
 
    # store the current working directory
    cwd = os.getcwd()
