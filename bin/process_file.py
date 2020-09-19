@@ -25,7 +25,7 @@ def main(argv):
    docker = False
 
    try:
-      opts, args = getopt.getopt(argv,"haco:k:b:p:",["help","aws","clut","opts=","key=","bucket=","prefix="])
+      opts, args = getopt.getopt(argv,"haco:s:k:b:p:",["help","aws","clut","opts=","source=","key=","bucket=","prefix="])
    except getopt.GetoptError:
       print("error: unrecognised arguments")
       printSyntax(me)
