@@ -75,14 +75,14 @@ def lambda_handler(event, context):
     try:
         if validate_event(event,context):
             s3_record = get_sns_s3_record(event)
-            key = basename(s3_record['object']['key'])
+            key = s3_record['object']['key']
             bucket_in = s3_record['bucket']['name']
             
             # set job name equal to the file key
-            jobName=key
+            jobName=basename(key)
             
             # construct the AWS Batch parameters to parse
-            parameters={'key':key, 'source':bucket_in, 'bucket':bucket_out, 'prefix':prefix, 'clut':"--clut", 'aws':"--aws", 'opts':"NLAYER=50\nHLAYER=100.0"}
+            parameters={'key':key, 'source':bucket_in, 'bucket':bucket_out, 'prefix':prefix, 'clut':"--clut", 'aws':"--aws"}
             
             # Submit a Batch Job
             response = batch.submit_job(jobQueue=jobQueue, jobName=jobName, jobDefinition=jobDefinition,
