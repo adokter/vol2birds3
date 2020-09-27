@@ -73,35 +73,44 @@ def main(argv):
    # print '       Lat:', latitude,'Lon:', longitude
    # print 'Night only:', night
 
-   l=astral.Location()
-   l.timezone='UTC'
-   l.longitude=longitude
-   l.latitude=latitude
-   sun=l.sun(date=datetime_object)
-   sunprev=l.sun(date=datetime_object-timedelta(days=1))
+   try:
+      l=astral.Location()
+      l.timezone='UTC'
+      l.longitude=longitude
+      l.latitude=latitude
+      sun=l.sun(date=datetime_object)
+      sunprev=l.sun(date=datetime_object-timedelta(days=1))
 
-   # print('   Sunrise: %s' % str(sun['sunrise']))
-   # print('    Sunset: %s' % str(sun['sunset']))
-   # print('PrevSunset: %s' % str(sunprev['sunset']))
+      # print('   Sunrise: %s' % str(sun['sunrise']))
+      # print('    Sunset: %s' % str(sun['sunset']))
+      # print('PrevSunset: %s' % str(sunprev['sunset']))
 
-   sunrise=sun['sunrise']
-   if sun['sunrise'].day != sun['sunset'].day:
-      sunset = sunprev['sunset']
-   else:
-      sunset = sun['sunset']
+      sunrise=sun['sunrise']
+      if sun['sunrise'].day != sun['sunset'].day:
+         sunset = sunprev['sunset']
+      else:
+         sunset = sun['sunset']
   
-   daylength=sun['sunset']-sun['sunrise']
+      daylength=sun['sunset']-sun['sunrise']
  
-   if sunrise<sunset:
-      noon=sunrise+daylength/2
-   else:
-      if (sunrise+daylength/2).day == sunset.day:
+      if sunrise<sunset:
          noon=sunrise+daylength/2
       else:
-         daylength=sunprev['sunset']-sunprev['sunrise']
-         noon=sunrise-daylength/2
+         if (sunrise+daylength/2).day == sunset.day:
+            noon=sunrise+daylength/2
+         else:
+            daylength=sunprev['sunset']-sunprev['sunrise']
+            noon=sunrise-daylength/2
+   except:
+      sunrise = False
+      sunset = False
+      noon = False
+      daylength = False
+   
+   if midday & (noon == False):
+      sys.exit()
 
-   data_dir=sunrise.strftime('%Y/%m/%d/'+radar)
+   data_dir=datetime_object.strftime('%Y/%m/%d/'+radar)
 
    s3 = boto.connect_s3()
 
@@ -133,28 +142,43 @@ def main(argv):
    bucketlist = [bucketlist[i] for i in index_ref]
    
    s3 = boto.connect_s3()
-
+   
    for key in bucketlist:
       fname = os.path.basename(key.name)
       if fname[0:4] != radar:
          continue
       datetime_key = utc.localize(datetime.strptime(fname[4:19], '%Y%m%d_%H%M%S'))
-      if not (day and night):
-         if night:
+      if night:
+         if not ((sunrise == False) | (sunset == False)):
             if sunrise < sunset:
                if datetime_key > sunrise and datetime_key < sunset:
                   continue
             else:
                if datetime_key < sunset or datetime_key > sunrise:
                   continue
-         if day:
+         else:
+            if (latitude > 0) & (datetime_key.month > 3) & (datetime_key.month <= 9):
+               # northern hemisphere polar summer, has no night
+               continue
+            if (latitude < 0) & (datetime_key.month <= 3) & (datetime_key.month > 9):
+               # southern hemisphere polar summer, has no night
+               continue
+      if day:
+         if not ((sunrise == False) | (sunset == False)):
             if sunrise < sunset:
                if not (datetime_key > sunrise and datetime_key < sunset):
                   continue
             else:
                if not (datetime_key < sunset or datetime_key > sunrise):
                   continue
-
+         else:
+            if (latitude > 0) & (datetime_key.month <= 3) & (datetime_key.month > 9):
+               # northern hemisphere polar winter, has no day
+               continue
+            if (latitude < 0) & (datetime_key.month > 3) & (datetime_key.month <= 9):
+               # southern hemisphere polar winter, has no day
+               continue
+ 
       datetime_prev=datetime_key
 
       # print or copy key
